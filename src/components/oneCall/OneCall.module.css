@@ -1,0 +1,77 @@
+.videoCall{
+    position: relative;
+    background: rgb(192, 180, 180);
+    border-radius: 10px;
+}
+
+.notActiveFrame{
+    width: 100%;
+    height: 90vh;
+}
+
+.activeFrame{
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1000;
+}
+
+.buttons{
+    position: absolute;
+    width: 100%;
+    height: 50px;
+    bottom: 20px;
+}
+
+.cancel{
+    position: absolute;
+    left: calc(50% - 15px);
+    width: 50px;
+    height: 50px;
+    background: rgb(145, 35, 35);
+    border-radius: 100%;
+    cursor: pointer;
+}
+
+.phoneIcon{
+    margin-top: 10px;
+}
+
+.fullFrame{
+    position: absolute;
+    right: 20px;
+    top: 12px;
+}
+
+
+
+
+
+
+
+
+
+.webcamVideo{
+    position: absolute;
+    left: 20px;
+    bottom: 20px;
+
+    width: 300px;
+    height: 200px;
+    background: #000;
+    border-radius: 10px;
+}
+
+.remoteVideoSmall{
+    position: relative;
+    width: 100%;
+    height: 90vh;
+}
+
+.remoteVideoBig{
+    position: relative;
+    width: 100%;
+    height: 100%;
+}

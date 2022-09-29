@@ -1,0 +1,25 @@
+.search{
+    position: relative;
+    width: 34px;
+    height: 34px;
+}
+
+.one{
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: 16px;
+    height: 16px;
+    border: 3px solid white;
+    border-radius: 100%;
+}
+
+.two{
+    position: absolute;
+    left: 2px;
+    bottom: 10px;
+    width: 16px;
+    height: 3px;
+    background: white;
+    transform: rotate(135deg);
+}

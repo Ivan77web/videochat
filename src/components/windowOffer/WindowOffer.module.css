@@ -1,0 +1,12 @@
+.window{
+    position: fixed;
+    z-index: 2000;
+    left: calc(50% - 150px);
+    top: calc(50% - 250px);
+    width: 300px;
+    height: 500px;
+    background: rgb(79, 52, 88);
+    border: 3px solid rgb(53, 2, 53);
+    border-radius: 10px;
+}
+

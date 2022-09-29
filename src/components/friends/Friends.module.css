@@ -1,0 +1,27 @@
+.friends{
+    position: relative;
+    display: flex;
+    width: 100%;
+}
+
+.myFriends{
+    position: absolute;
+    width: 30%;
+    height: 600px;
+    background: white;
+    border-radius: 20px;
+    left: 0;
+}
+
+.searchFriends{
+    position: absolute;
+    width: 60%;
+    height: 600px;
+    right: 0;
+}
+
+.intro{
+    margin-top: 10px;
+    margin-bottom: 10px;
+    text-align: center;
+}

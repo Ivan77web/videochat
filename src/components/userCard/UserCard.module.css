@@ -1,0 +1,47 @@
+.card{
+    position: relative;
+    width: 90%;
+    height: 50px;
+    margin: 0 auto;
+    margin-top: 5px;
+    border: 2px solid rgb(50, 34, 124);
+    border-radius: 10px;
+    display: flex;
+}
+
+.avatar{
+    width: 30px;
+    height: 30px;
+    border-radius: 100%;
+    margin-top: 10px;
+    margin-left: 5px;
+    background: white;
+    overflow: hidden;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+}
+
+.photo{
+    max-width: 30px;
+    max-height: 30px;
+    object-fit: contain;
+    align-self: center;
+}
+
+.name{
+    line-height: 50px;
+    margin-left: 10px;
+}
+
+.cameraLogo{
+    position: absolute;
+    top: 15px;
+    right: 60px;
+}
+
+.phoneLogo{
+    position: absolute;
+    top: 10px;
+    right: 10px;
+}

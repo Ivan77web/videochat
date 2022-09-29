@@ -1,0 +1,79 @@
+.logo{
+    position: relative;
+    width: 26px;
+    height: 26px;
+    cursor: pointer;
+    /* background: green; */
+}
+
+.one{
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 10px;
+    height: 4px;
+    background: black;
+}
+
+.two{
+    left: 0;
+    top: 0;
+    position: absolute;
+    height: 10px;
+    width: 4px;
+    background: black;
+}
+
+.three{
+    right: 0;
+    top: 0;
+    position: absolute;
+    width: 10px;
+    height: 4px;
+    background: black;
+}
+
+.four{
+    right: 0;
+    top: 0;
+    position: absolute;
+    height: 10px;
+    width: 4px;
+    background: black;
+}
+
+.five{
+    left: 0;
+    bottom: 0;
+    position: absolute;
+    width: 10px;
+    height: 4px;
+    background: black;
+}
+
+.six{
+    left: 0;
+    bottom: 0;
+    position: absolute;
+    height: 10px;
+    width: 4px;
+    background: black;
+}
+
+.seven{
+    right: 0;
+    bottom: 0;
+    position: absolute;
+    width: 10px;
+    height: 4px;
+    background: black;
+}
+
+.eight{
+    right: 0;
+    bottom: 0;
+    position: absolute;
+    height: 10px;
+    width: 4px;
+    background: black;
+}
