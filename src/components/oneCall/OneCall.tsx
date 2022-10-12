@@ -1,45 +1,64 @@
-import { setDoc, doc } from "firebase/firestore";
-import React, { useContext, useEffect, useRef, useState } from "react";
+import { setDoc, doc, deleteDoc, getDoc } from "firebase/firestore";
+import { useContext, useEffect, useRef, useState } from "react";
 import { useCollectionData } from "react-firebase-hooks/firestore";
+import { useNavigate } from "react-router";
 import { Context } from "../..";
 import { useTypedSelector } from "../../hooks/useTypedSelector";
 import { Phone } from "../../icons/phone/Phone";
+import { IMyOfferFB } from "../../types/oneCall";
 import { FullFrame } from "../ui/fullFrame/FullFrame";
 import cl from "./OneCall.module.css"
 
-interface IMyOfferFB {
-    callDocId: string;
-    mainId: string
-}
-
 const OneCall = () => {
     const { firestore } = useContext(Context);
-
-    const [isCall, setIsCall] = useState(true) //Потом добавлю аудиозвонки
+    const navigate = useNavigate();
 
     const { mainId, guestId } = useTypedSelector(state => state.statusCall)
     const { id } = useTypedSelector(state => state.userData)
 
-    const [activeFrame, setActiveFrame] = useState(false);
-    const [activeVideo, setActiveVideo] = useState(false);
-
-    const activeFrameClick = () => {
-        setActiveFrame(!activeFrame);
-        setActiveVideo(!activeVideo)
-    }
-
-    // --------------------------------------------------
-
     const webcamVideo = useRef<HTMLVideoElement | null>(null);
     const remoteVideo = useRef<HTMLVideoElement | null>(null);
 
-    const [isCameraOpen, setIsCameraOpen] = useState(false); // ТЕСТ !!!!!!!!!!
+    const [activeFrame, setActiveFrame] = useState(false);
+    const [activeVideo, setActiveVideo] = useState(false);
+    const [isCameraOpen, setIsCameraOpen] = useState(false);
 
-    // --------------------------------------------------
-
-    const [myOffer, loadingOffer] = useCollectionData<IMyOfferFB>(
-        firestore.collection(`offer_for_${id}`)
+    const [offers] = useCollectionData<IMyOfferFB>(
+        firestore.collection(`offers`)
     )
+
+    const [calls] = useCollectionData(
+        firestore.collection("calls")
+    )
+
+    const [myOffer, setMyOffer] = useState<IMyOfferFB>();
+
+    const [isFindOffer, setIsFindOffer] = useState<boolean>(false)
+
+    const [callId, setCallId] = useState<string>("");
+
+    // useEffect( () => {
+    //     if(calls && callId){
+    //         const callDoc = firestore.collection('calls').doc(callId);
+    //         console.log(callDoc);
+            
+    //     }
+    // }, [calls, callId])
+
+    useEffect(() => {
+        if (offers) {
+            if (id !== mainId) {
+                offers.map(offer => {
+                    if (offer.guestId === id) {
+                        setMyOffer(offer)
+                        setIsFindOffer(true)
+                    }
+                })
+            } else {
+                setIsFindOffer(true)
+            }
+        }
+    }, [offers])
 
     const servers = {
         iceServers: [
@@ -50,49 +69,20 @@ const OneCall = () => {
         iceCandidatePoolSize: 10,
     };
 
-    // const pc = new RTCPeerConnection(servers);
-    const [pc, setPc] = useState(new RTCPeerConnection(servers))
-    // const pc = new RTCPeerConnection(servers);
+    const [pc, setPc] = useState<RTCPeerConnection | null>(new RTCPeerConnection(servers))
+    const [localStream, setLocalStream] = useState<any>(null)
+    let remoteStream: any = new MediaStream();
 
-    let localStream: any = null;
-    let remoteStream: any = new MediaStream();;
-
-    // pc.ontrack = (event) => { // тут возможна ошибка
-    //     console.log("Получил");
-
-    //     console.log(event);
-
-    //     event.streams[0].getTracks().forEach((track) => {
-    //         remoteStream.addTrack(track);
-    //     });
-
-    //     if (remoteVideo.current) {
-    //         remoteVideo.current.srcObject = remoteStream;
-    //     }
-    // };
-
-    useEffect(() => {
-        pc.ontrack = (event) => { // тут возможна ошибка
-            console.log("Получил");
-
-            console.log(event);
-
-            event.streams[0].getTracks().forEach((track) => {
-                remoteStream.addTrack(track);
-            });
-
-            if (remoteVideo.current) {
-                remoteVideo.current.srcObject = remoteStream;
-            }
-        };
-    }, [pc])
-
-
+    const activeFrameClick = () => {
+        setActiveFrame(!activeFrame);
+        setActiveVideo(!activeVideo)
+    }
 
     const answerOffer = async () => {
-        if (myOffer) {
-            const callId = myOffer[0].callDocId
+        if (myOffer && pc) {
+            setCallId(myOffer.callDocId)
 
+            const callId = myOffer.callDocId
             const callDoc = firestore.collection('calls').doc(callId);
             const answerCandidates = callDoc.collection('answerCandidates');
             const offerCandidates = callDoc.collection('offerCandidates');
@@ -124,93 +114,124 @@ const OneCall = () => {
                     }
                 });
             });
+
+            deleteDoc(doc(firestore, `offers`, `offer_for_${myOffer.guestId}`));
         }
     }
 
     const createOffer = async () => {
-        const callDoc = firestore.collection('calls').doc();
-        const offerCandidates = callDoc.collection('offerCandidates');
-        const answerCandidates = callDoc.collection('answerCandidates');
+        if (pc) {
+            const callDoc = firestore.collection('calls').doc();
+            const offerCandidates = callDoc.collection('offerCandidates');
+            const answerCandidates = callDoc.collection('answerCandidates');
 
-        setDoc(doc(firestore, `offer_for_${guestId}`, "callDocId"), {
-            callDocId: callDoc.id
-        });
+            setCallId(callDoc.id)
 
-        pc.onicecandidate = (event) => {
-            event.candidate && offerCandidates.add(event.candidate.toJSON());
-        };
+            await setDoc(doc(firestore, "offers", `offer_for_${guestId}`), {
+                callDocId: callDoc.id,
+                mainId: mainId,
+                guestId: guestId,
+            });
 
-        const offerDescription = await pc.createOffer();
+            pc.onicecandidate = (event) => {
+                event.candidate && offerCandidates.add(event.candidate.toJSON());
+            };
 
-        await pc.setLocalDescription(offerDescription);
+            const offerDescription = await pc.createOffer();
 
-        const offer = {
-            sdp: offerDescription.sdp,
-            type: offerDescription.type,
-        };
+            await pc.setLocalDescription(offerDescription);
 
-        await callDoc.set({ offer });
+            const offer = {
+                sdp: offerDescription.sdp,
+                type: offerDescription.type,
+            };
 
-        callDoc.onSnapshot((snapshot: any) => { // ANY !!!!!!!!
-            const data = snapshot.data();
+            await callDoc.set({ offer });
 
-            if (!pc.currentRemoteDescription && data?.answer) {
-                const answerDescription = new RTCSessionDescription(data.answer);
-                pc.setRemoteDescription(answerDescription);
-            }
-        });
+            callDoc.onSnapshot((snapshot: any) => { // ANY !!!!!!!!
+                const data = snapshot.data();
 
-        answerCandidates.onSnapshot((snapshot: any) => { // ANY !!!!!!!!
-            snapshot.docChanges().forEach((change: any) => { // ANY !!!!!!!!
-                if (change.type === 'added') {
-                    const candidate = new RTCIceCandidate(change.doc.data());
-                    pc.addIceCandidate(candidate);
+                if (!pc.currentRemoteDescription && data?.answer) {
+                    const answerDescription = new RTCSessionDescription(data.answer);
+                    pc.setRemoteDescription(answerDescription);
                 }
             });
-        });
+
+            answerCandidates.onSnapshot((snapshot: any) => { // ANY !!!!!!!!
+                snapshot.docChanges().forEach((change: any) => { // ANY !!!!!!!!
+                    if (change.type === 'added') {
+                        const candidate = new RTCIceCandidate(change.doc.data());
+                        pc.addIceCandidate(candidate);
+                    }
+                });
+            });
+        }
     }
 
-    const startCamera = async () => {
-        localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-        // remoteStream = new MediaStream();
+    const startSignal = async () => {
+        // localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        setLocalStream(await navigator.mediaDevices.getUserMedia({ video: true, audio: false }))
 
-        localStream.getTracks().forEach((track: any) => {
-            console.log("Отправил");
+        // localStream.getTracks().forEach((track: any) => {
+        //     pc.addTrack(track, localStream);
+        // });
 
-            pc.addTrack(track, localStream);
-        });
-
-        // pc.ontrack = (event) => { // тут возможна ошибка
-        //     console.log("Начало");
-
-        //     console.log(event);
-
-        //     event.streams[0].getTracks().forEach((track) => {
-        //         remoteStream.addTrack(track);
-        //     });
-        // };
-
-        // if (webcamVideo.current && remoteVideo.current) {
+        // if (webcamVideo.current) {
         //     webcamVideo.current.srcObject = localStream;
-        //     remoteVideo.current.srcObject = remoteStream;
         // }
 
-        if (webcamVideo.current) {
-            webcamVideo.current.srcObject = localStream;
-        }
+        // if (mainId === id) {
+        //     await setDoc(doc(firestore, `offer_for_${guestId}`, "mainId"), {
+        //         mainId: mainId,
+        //     });
 
-        if (mainId === id) {
-            await setDoc(doc(firestore, `offer_for_${guestId}`, "mainId"), {
-                mainId: mainId,
+        //     createOffer();
+        // } else {
+        //     setIsCameraOpen(true)
+        // }
+    }
+
+    useEffect(() => {
+        if (localStream && pc) {
+            localStream.getTracks().forEach((track: any) => {
+                pc.addTrack(track, localStream);
             });
 
-            createOffer();
-        } else {
-            setIsCameraOpen(true)
-            // answerOffer()
-        }
+            if (webcamVideo.current) {
+                webcamVideo.current.srcObject = localStream;
+            }
 
+            if (mainId === id) {
+                createOffer();
+            } else {
+                setIsCameraOpen(true)
+            }
+        }
+    }, [localStream])
+
+    const stopVideo = async () => {
+        localStream.getTracks().forEach(function (track: any) {
+            track.stop();
+        });
+
+        pc?.close()
+
+        deleteDoc(doc(firestore, `calls`, callId));
     }
+
+    useEffect(() => {
+        if (pc) {
+            pc.ontrack = (event) => {
+                event.streams[0].getTracks().forEach((track) => {
+                    remoteStream.addTrack(track);
+                });
+
+                if (remoteVideo.current) {
+                    remoteVideo.current.srcObject = remoteStream;
+                }
+            };
+        }
+    }, [pc])
 
     useEffect(() => {
         if (isCameraOpen && myOffer) {
@@ -219,45 +240,39 @@ const OneCall = () => {
     }, [isCameraOpen, myOffer])
 
     useEffect(() => {
-        startCamera()
-    }, [])
+        if (isFindOffer) {
+            startSignal()
+        }
+    }, [isFindOffer])
 
-    if (isCall) {
-        return (
-            <div className="container">
-                <div className={activeFrame ? cl.videoCall + " " + cl.activeFrame : cl.videoCall + " " + cl.notActiveFrame}>
+    return (
+        <div className="container">
+            <div className={activeFrame ? cl.videoCall + " " + cl.activeFrame : cl.videoCall + " " + cl.notActiveFrame}>
 
-                    <video
-                        className={activeFrame ? cl.remoteVideoBig : cl.remoteVideoSmall}
-                        autoPlay
-                        playsInline
-                        ref={remoteVideo}
-                    >
-                    </video>
+                <video
+                    className={activeFrame ? cl.remoteVideoBig : cl.remoteVideoSmall}
+                    autoPlay
+                    playsInline
+                    ref={remoteVideo}
+                >
+                </video>
 
-                    <video className={cl.webcamVideo} autoPlay playsInline muted ref={webcamVideo}></video>
+                <video className={cl.webcamVideo} autoPlay playsInline muted ref={webcamVideo}></video>
 
-                    <div className={cl.buttons}>
-                        <div className={cl.cancel}>
-                            <div className={cl.phoneIcon}>
-                                <Phone color="white" />
-                            </div>
+                <div className={cl.buttons}>
+                    <div className={cl.cancel} onClick={stopVideo}>
+                        <div className={cl.phoneIcon}>
+                            <Phone color="white" />
                         </div>
+                    </div>
 
-                        <div className={cl.fullFrame} onClick={activeFrameClick}>
-                            <FullFrame />
-                        </div>
+                    <div className={cl.fullFrame} onClick={activeFrameClick}>
+                        <FullFrame />
                     </div>
                 </div>
             </div>
-        )
-    } else {
-        return (
-            <div className="container">
-
-            </div>
-        )
-    }
+        </div>
+    )
 }
 
 export { OneCall }

@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { deleteDoc, doc } from "firebase/firestore";
 import { useCollectionData } from "react-firebase-hooks/firestore";
@@ -8,6 +8,7 @@ import { Context } from "../..";
 import { useTypedSelector } from "../../hooks/useTypedSelector";
 import { Phone } from "../../icons/phone/Phone";
 import cl from "./WindowOffer.module.css"
+import { IMyOfferFB } from "../../types/oneCall";
 
 const WindowOffer = () => {
     const { firestore } = useContext(Context);
@@ -16,10 +17,14 @@ const WindowOffer = () => {
     const { id } = useTypedSelector(state => state.userData)
     const { isCall } = useTypedSelector(state => state.isOffer)
     const [mainIdName, setMainNameId] = useState<string>("")
-    const [myOffer, loadingOffer] = useCollectionData(
-        firestore.collection(`offer_for_${id}`)
+
+    const [offers, loadingOffers] = useCollectionData<IMyOfferFB>(
+        firestore.collection(`offers`)
     )
-    const [allUsers, loadingUsers] = useCollectionData(
+
+    const [myOffer, setMyOffer] = useState<IMyOfferFB>();
+
+    const [allUsers] = useCollectionData(
         firestore.collection(`allUsers`)
     )
 
@@ -33,8 +38,18 @@ const WindowOffer = () => {
     }
 
     useEffect(() => {
-        if (!loadingOffer) {
-            if (myOffer !== undefined && myOffer[1] && myOffer[1].mainId) {
+        if (offers) {
+            offers.map(offer => {
+                if (offer.guestId === id) {
+                    setMyOffer(offer)
+                }
+            })
+        }
+    }, [offers])
+
+    useEffect(() => {
+        if (!loadingOffers) {
+            if (myOffer !== undefined) {
                 dispatch({ type: "addOffer" })
             } else {
                 dispatch({ type: "removeOffer" })
@@ -43,9 +58,9 @@ const WindowOffer = () => {
     }, [myOffer])
 
     useEffect(() => {
-        if (allUsers && myOffer && myOffer !== undefined && myOffer[1] && myOffer[1].mainId) {
+        if (allUsers && myOffer && myOffer !== undefined) {
             allUsers.map(user => {
-                if (user.id === myOffer[1].mainId) {
+                if (user.id === myOffer.mainId) {
                     setMainNameId(user.name)
                 }
             })
