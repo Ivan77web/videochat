@@ -1,39 +1,57 @@
 import { deleteDoc, doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
-import { useContext, useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef } from "react";
 import { useCollectionData } from "react-firebase-hooks/firestore";
 import { useNavigate } from "react-router";
 import { Context } from "../../..";
 import { useTypedSelector } from "../../../hooks/useTypedSelector";
 import { Phone } from "../../../icons/phone/Phone";
-import { IMyOfferFB } from "../../../types/oneCall";
 import { FullFrame } from "../../ui/fullFrame/FullFrame";
 import cl from "./OneCallOffer.module.css"
 
 interface IOneCallOffer {
-    servers: any // ANY !!!!!!!!
     callDoc: any // ANY !!!!!!!!
     callId: string
+    activeFrame: boolean;
+    setActiveFrame: (value: boolean) => void;
+    activeVideo: boolean;
+    setActiveVideo: (value: boolean) => void;
+    pc: RTCPeerConnection | null;
+    setPc: (value: RTCPeerConnection | null) => void;
+    localStream: any;
+    setLocalStream: (value: any) => void;
+    remoteStream: any;
+    isChoiseWork: boolean;
+    setIsChoiseWork: (value: boolean) => void;
 }
 
-const OneCallOffer: React.FC<IOneCallOffer> = ({ servers, callDoc, callId }) => {
-    const { firestore } = useContext(Context); // ПОВТОРЯЕТСЯ
-    const navigate = useNavigate(); // ПОВТОРЯЕТСЯ
+const OneCallOffer: React.FC<IOneCallOffer> = ({
+    callDoc,
+    callId,
+    activeFrame,
+    setActiveFrame,
+    activeVideo,
+    setActiveVideo,
+    pc,
+    setPc,
+    localStream,
+    setLocalStream,
+    remoteStream,
+    isChoiseWork,
+    setIsChoiseWork,
+}) => {
+    const { firestore } = useContext(Context);
+    const navigate = useNavigate();
     const { mainId, guestId } = useTypedSelector(state => state.statusCall)
-    const webcamVideo = useRef<HTMLVideoElement | null>(null); // ПОВТОРЯЕТСЯ
-    const remoteVideo = useRef<HTMLVideoElement | null>(null); // ПОВТОРЯЕТСЯ
-    const [activeFrame, setActiveFrame] = useState(false); // ПОВТОРЯЕТСЯ
-    const [activeVideo, setActiveVideo] = useState(false); // ПОВТОРЯЕТСЯ
-    const [localStream, setLocalStream] = useState<any>(null) // ПОВТОРЯЕТСЯ
-    let remoteStream: any = new MediaStream(); // ПОВТОРЯЕТСЯ
-    const [pc, setPc] = useState<RTCPeerConnection | null>(new RTCPeerConnection(servers)) // ПОВТОРЯЕТСЯ
+    const webcamVideo = useRef<HTMLVideoElement | null>(null);
+    const remoteVideo = useRef<HTMLVideoElement | null>(null);
 
     const [isWorkCalls] = useCollectionData(
         firestore.collection(`isWorkCalls`)
-    ) // ПОВТОРЯЕТСЯ
+    )
 
     const startSignal = async () => {
         setLocalStream(await navigator.mediaDevices.getUserMedia({ video: true, audio: false }))
-    } // ПОВТОРЯЕТСЯ
+    }
 
     const createOffer = async () => {
         if (pc) {
@@ -81,8 +99,6 @@ const OneCallOffer: React.FC<IOneCallOffer> = ({ servers, callDoc, callId }) => 
         }
     }
 
-    const [isChoiseWork, setIsChoiseWork] = useState<boolean>(true) // ПОВТОРЯЕТСЯ
-
     const choiseWork = async () => {
         if (isChoiseWork) {
             const docRef = doc(firestore, "isWorkCalls", `call_${callId}`);
@@ -93,7 +109,7 @@ const OneCallOffer: React.FC<IOneCallOffer> = ({ servers, callDoc, callId }) => 
                 stopVideo()
             }
         }
-    } // ПОВТОРЯЕТСЯ
+    }
 
     const buttonStop = async () => {
         setIsChoiseWork(false)
@@ -103,7 +119,7 @@ const OneCallOffer: React.FC<IOneCallOffer> = ({ servers, callDoc, callId }) => 
         });
 
         stopVideo()
-    } // ПОВТОРЯЕТСЯ
+    }
 
     const stopVideo = async () => {
         localStream.getTracks().forEach(function (track: any) {
@@ -115,12 +131,12 @@ const OneCallOffer: React.FC<IOneCallOffer> = ({ servers, callDoc, callId }) => 
         deleteDoc(doc(firestore, `offers`, `offer_for_${guestId}`));
 
         navigate("/")
-    } // ПОВТОРЯЕТСЯ, НО ЕСТЬ НЕБОЛЬШОЕ ОТЛИЧИЕ
+    }
 
     const activeFrameClick = () => {
         setActiveFrame(!activeFrame);
         setActiveVideo(!activeVideo)
-    } // ПОВТОРЯЕТСЯ
+    }
 
     useEffect(() => {
         startSignal()

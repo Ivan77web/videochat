@@ -3,36 +3,55 @@ import React, { useContext, useEffect, useRef, useState } from "react";
 import { useCollectionData } from "react-firebase-hooks/firestore";
 import { useNavigate } from "react-router";
 import { Context } from "../../..";
-import { useTypedSelector } from "../../../hooks/useTypedSelector";
 import { Phone } from "../../../icons/phone/Phone";
 import { IMyOfferFB } from "../../../types/oneCall";
 import { FullFrame } from "../../ui/fullFrame/FullFrame";
 import cl from "./OneCallAnswer.module.css"
 
 interface IOneCallOffer {
-    servers: any // ANY !!!!!!!!
-    myOffer: IMyOfferFB
-    callId: string
+    myOffer: IMyOfferFB;
+    callId: string;
+    activeFrame: boolean;
+    setActiveFrame: (value: boolean) => void;
+    activeVideo: boolean;
+    setActiveVideo: (value: boolean) => void;
+    pc: RTCPeerConnection | null;
+    setPc: (value: RTCPeerConnection | null) => void;
+    localStream: any;
+    setLocalStream: (value: any) => void;
+    remoteStream: any;
+    isChoiseWork: boolean;
+    setIsChoiseWork: (value: boolean) => void;
 }
 
-const OneCallAnswer: React.FC<IOneCallOffer> = ({ servers, myOffer, callId }) => {
-    const { firestore } = useContext(Context); // ПОВТОРЯЕТСЯ
-    const navigate = useNavigate(); // ПОВТОРЯЕТСЯ
-    const webcamVideo = useRef<HTMLVideoElement | null>(null); // ПОВТОРЯЕТСЯ
-    const remoteVideo = useRef<HTMLVideoElement | null>(null); // ПОВТОРЯЕТСЯ
-    const [activeFrame, setActiveFrame] = useState(false); // ПОВТОРЯЕТСЯ
-    const [activeVideo, setActiveVideo] = useState(false); // ПОВТОРЯЕТСЯ
+const OneCallAnswer: React.FC<IOneCallOffer> = ({
+    myOffer,
+    callId,
+    activeFrame,
+    setActiveFrame,
+    activeVideo,
+    setActiveVideo,
+    pc,
+    setPc,
+    localStream,
+    setLocalStream,
+    remoteStream,
+    isChoiseWork,
+    setIsChoiseWork,
+}) => {
+    const { firestore } = useContext(Context);
+    const navigate = useNavigate();
+    const webcamVideo = useRef<HTMLVideoElement | null>(null);
+    const remoteVideo = useRef<HTMLVideoElement | null>(null);
     const [isCameraOpen, setIsCameraOpen] = useState(false);
-    const [pc, setPc] = useState<RTCPeerConnection | null>(new RTCPeerConnection(servers)) // ПОВТОРЯЕТСЯ
-    const [localStream, setLocalStream] = useState<any>(null) // ПОВТОРЯЕТСЯ
-    let remoteStream: any = new MediaStream(); // ПОВТОРЯЕТСЯ
+
     const [isWorkCalls] = useCollectionData(
         firestore.collection(`isWorkCalls`)
-    ) // ПОВТОРЯЕТСЯ
+    )
 
     const startSignal = async () => {
         setLocalStream(await navigator.mediaDevices.getUserMedia({ video: true, audio: false }))
-    } // ПОВТОРЯЕТСЯ
+    }
 
     const answerOffer = async () => {
         if (myOffer && pc) {
@@ -76,8 +95,6 @@ const OneCallAnswer: React.FC<IOneCallOffer> = ({ servers, myOffer, callId }) =>
         }
     }
 
-    const [isChoiseWork, setIsChoiseWork] = useState<boolean>(true) // ПОВТОРЯЕТСЯ
-
     const choiseWork = async () => {
         if (isChoiseWork) {
             const docRef = doc(firestore, "isWorkCalls", `call_${callId}`);
@@ -89,7 +106,7 @@ const OneCallAnswer: React.FC<IOneCallOffer> = ({ servers, myOffer, callId }) =>
                 stopVideo()
             }
         }
-    } // ПОВТОРЯЕТСЯ
+    }
 
     const buttonStop = async () => {
         setIsChoiseWork(false)
@@ -99,7 +116,7 @@ const OneCallAnswer: React.FC<IOneCallOffer> = ({ servers, myOffer, callId }) =>
         });
 
         stopVideo()
-    } // ПОВТОРЯЕТСЯ
+    }
 
     const stopVideo = async () => {
         localStream.getTracks().forEach(function (track: any) {
@@ -111,16 +128,16 @@ const OneCallAnswer: React.FC<IOneCallOffer> = ({ servers, myOffer, callId }) =>
         deleteDoc(doc(firestore, `offers`, `offer_for_${myOffer.guestId}`));
 
         navigate("/")
-    } // ПОВТОРЯЕТСЯ, НО ЕСТЬ НЕБОЛЬШОЕ ОТЛИЧИЕ
+    }
 
     const activeFrameClick = () => {
         setActiveFrame(!activeFrame);
         setActiveVideo(!activeVideo);
-    } // ПОВТОРЯЕТСЯ
+    }
 
     useEffect(() => {
         startSignal()
-    }, []) 
+    }, [])
 
     useEffect(() => {
         if (localStream && pc) {

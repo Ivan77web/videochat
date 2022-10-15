@@ -10,6 +10,13 @@ const OneCallBase = () => {
     const { firestore } = useContext(Context);
     const { typeCall } = useTypedSelector(state => state.typeCall)
     const { id } = useTypedSelector(state => state.userData)
+    const [callDoc, setCallDoc] = useState<any>();
+    const [myOffer, setMyOffer] = useState<IMyOfferFB>();
+    const [activeFrame, setActiveFrame] = useState<boolean>(false);
+    const [activeVideo, setActiveVideo] = useState<boolean>(false);
+    const [localStream, setLocalStream] = useState<any>(null);
+    const [isChoiseWork, setIsChoiseWork] = useState<boolean>(true);
+    let remoteStream: any = new MediaStream();
 
     const servers = {
         iceServers: [
@@ -20,15 +27,14 @@ const OneCallBase = () => {
         iceCandidatePoolSize: 10,
     };
 
+    const [pc, setPc] = useState<RTCPeerConnection | null>(new RTCPeerConnection(servers));
+
     const [offers] = useCollectionData<IMyOfferFB>(
         firestore.collection(`offers`)
     )
 
-    const [callDoc, setCallDoc] = useState<any>();
-    const [myOffer, setMyOffer] = useState<IMyOfferFB>();
-
-    useEffect( () => {
-        if (typeCall === "offer") { 
+    useEffect(() => {
+        if (typeCall === "offer") {
             setCallDoc(firestore.collection('calls').doc());
         }
     }, [])
@@ -53,7 +59,21 @@ const OneCallBase = () => {
                     (callDoc && callDoc.id)
                         ?
                         <div>
-                            <OneCallOffer servers={servers} callDoc={callDoc} callId={callDoc.id} />
+                            <OneCallOffer
+                                callDoc={callDoc}
+                                callId={callDoc.id}
+                                activeFrame={activeFrame}
+                                setActiveFrame={setActiveFrame}
+                                activeVideo={activeVideo}
+                                setActiveVideo={setActiveVideo}
+                                pc={pc}
+                                setPc={setPc}
+                                localStream={localStream}
+                                setLocalStream={setLocalStream}
+                                remoteStream={remoteStream}
+                                isChoiseWork={isChoiseWork}
+                                setIsChoiseWork={setIsChoiseWork}
+                            />
                         </div>
                         :
                         <div />
@@ -64,7 +84,21 @@ const OneCallBase = () => {
                         myOffer
                             ?
                             <div>
-                                <OneCallAnswer servers={servers} myOffer={myOffer} callId={myOffer.callDocId} />
+                                <OneCallAnswer
+                                    myOffer={myOffer}
+                                    callId={myOffer.callDocId}
+                                    activeFrame={activeFrame}
+                                    setActiveFrame={setActiveFrame}
+                                    activeVideo={activeVideo}
+                                    setActiveVideo={setActiveVideo}
+                                    pc={pc}
+                                    setPc={setPc}
+                                    localStream={localStream}
+                                    setLocalStream={setLocalStream}
+                                    remoteStream={remoteStream}
+                                    isChoiseWork={isChoiseWork}
+                                    setIsChoiseWork={setIsChoiseWork}
+                                />
                             </div>
                             :
                             <div />
