@@ -34,6 +34,7 @@ const WindowOffer = () => {
 
     const connectCall = () => {
         dispatch({ type: "removeOffer" })
+        dispatch({type: "typeIsAnswer"})
         navigate("/call")
     }
 
