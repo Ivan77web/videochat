@@ -2,6 +2,8 @@
     position: relative;
     height: 20px;
     width: 40px;
+    text-align: center;
+    margin: 0 auto;
     cursor: pointer;
 }
 
@@ -10,13 +12,11 @@
     height: 20px;
     width: 30px;
     border-radius: 5px;
-    background: rgb(50, 34, 124);
 }
 
 .header{
     position: absolute;
     border: 10px solid transparent; 
-    border-right: 20px solid rgb(50, 34, 124);
     border-radius: 5px;
     left: 10px;
 }

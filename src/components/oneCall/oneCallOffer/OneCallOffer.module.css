@@ -25,18 +25,39 @@
     bottom: 20px;
 }
 
-.cancel{
+.button{
     position: absolute;
-    left: calc(50% - 15px);
     width: 50px;
     height: 50px;
-    background: rgb(145, 35, 35);
     border-radius: 100%;
     cursor: pointer;
 }
 
+.cancel{
+    left: calc(50% - 15px);
+    background: rgb(145, 35, 35);
+}
+
+.camera{
+    left: calc(50% + 40px);
+    background: rgb(145, 35, 35);
+}
+
+.micro{
+    left: calc(50% + 100px);
+    background: rgb(145, 35, 35);
+}
+
 .phoneIcon{
     margin-top: 10px;
+}
+
+.cameraIcon{
+    margin-top: 15px;
+}
+
+.microIcon{
+    margin-top: 7px;
 }
 
 .fullFrame{
@@ -45,19 +66,10 @@
     top: 12px;
 }
 
-
-
-
-
-
-
-
-
 .webcamVideo{
     position: absolute;
     left: 20px;
     bottom: 20px;
-
     width: 300px;
     height: 200px;
     background: #000;

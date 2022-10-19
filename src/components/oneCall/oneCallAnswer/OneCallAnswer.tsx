@@ -3,26 +3,12 @@ import React, { useContext, useEffect, useRef, useState } from "react";
 import { useCollectionData } from "react-firebase-hooks/firestore";
 import { useNavigate } from "react-router";
 import { Context } from "../../..";
+import { Camera } from "../../../icons/camera/Camera";
+import { Micro } from "../../../icons/micro/Micro";
 import { Phone } from "../../../icons/phone/Phone";
-import { IMyOfferFB } from "../../../types/oneCall";
+import { IOneCallOffer } from "../../../types/oneCallAnswer";
 import { FullFrame } from "../../ui/fullFrame/FullFrame";
-import cl from "./OneCallAnswer.module.css"
-
-interface IOneCallOffer {
-    myOffer: IMyOfferFB;
-    callId: string;
-    activeFrame: boolean;
-    setActiveFrame: (value: boolean) => void;
-    activeVideo: boolean;
-    setActiveVideo: (value: boolean) => void;
-    pc: RTCPeerConnection | null;
-    setPc: (value: RTCPeerConnection | null) => void;
-    localStream: any;
-    setLocalStream: (value: any) => void;
-    remoteStream: any;
-    isChoiseWork: boolean;
-    setIsChoiseWork: (value: boolean) => void;
-}
+import cl from "../oneCallOffer/OneCallOffer.module.css" // исправить класс !!!!!!
 
 const OneCallAnswer: React.FC<IOneCallOffer> = ({
     myOffer,
@@ -44,6 +30,8 @@ const OneCallAnswer: React.FC<IOneCallOffer> = ({
     const webcamVideo = useRef<HTMLVideoElement | null>(null);
     const remoteVideo = useRef<HTMLVideoElement | null>(null);
     const [isCameraOpen, setIsCameraOpen] = useState(false);
+    const [microOn, setMicroOn] = useState<boolean>(true)
+    const [cameraOn, setCameraOn] = useState<boolean>(true)
 
     const [isWorkCalls] = useCollectionData(
         firestore.collection(`isWorkCalls`)
@@ -103,7 +91,7 @@ const OneCallAnswer: React.FC<IOneCallOffer> = ({
 
             if (docSnap.data()?.isWork === false) {
                 deleteDoc(doc(firestore, "isWorkCalls", `call_${callId}`));
-                stopVideo()
+                stopCall()
             }
         }
     }
@@ -115,10 +103,10 @@ const OneCallAnswer: React.FC<IOneCallOffer> = ({
             isWork: false
         });
 
-        stopVideo()
+        stopCall()
     }
 
-    const stopVideo = async () => {
+    const stopCall = async () => {
         localStream.getTracks().forEach(function (track: any) {
             track.stop();
         });
@@ -128,6 +116,24 @@ const OneCallAnswer: React.FC<IOneCallOffer> = ({
         deleteDoc(doc(firestore, `offers`, `offer_for_${myOffer.guestId}`));
 
         navigate("/")
+    }
+
+    const clickMicroIcon = () => {
+        setMicroOn(!microOn);
+        changeAudio();
+    }
+
+    const clickVideoIcon = () => {
+        setCameraOn(!cameraOn);
+        changeVideo();
+    }
+
+    const changeAudio = () => {
+        localStream.getAudioTracks()[0].enabled = !(localStream.getAudioTracks()[0].enabled);
+    }
+
+    const changeVideo = () => {
+        localStream.getVideoTracks()[0].enabled = !(localStream.getVideoTracks()[0].enabled);
     }
 
     const activeFrameClick = () => {
@@ -194,9 +200,21 @@ const OneCallAnswer: React.FC<IOneCallOffer> = ({
                 <video className={cl.webcamVideo} autoPlay playsInline muted ref={webcamVideo}></video>
 
                 <div className={cl.buttons}>
-                    <div className={cl.cancel} onClick={buttonStop}>
+                    <div className={cl.cancel + " " + cl.button} onClick={buttonStop}>
                         <div className={cl.phoneIcon}>
                             <Phone color="white" />
+                        </div>
+                    </div>
+
+                    <div className={cl.camera + " " + cl.button}>
+                        <div className={cl.cameraIcon} onClick={() => clickVideoIcon()}>
+                            <Camera bg={cameraOn ? "white" : "black"} />
+                        </div>
+                    </div>
+
+                    <div className={cl.micro + " " + cl.button}>
+                        <div className={cl.microIcon} onClick={() => clickMicroIcon()}>
+                            <Micro bg={microOn ? "white" : "black"} />
                         </div>
                     </div>
 

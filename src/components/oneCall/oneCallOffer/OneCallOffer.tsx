@@ -1,28 +1,15 @@
 import { deleteDoc, doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
-import { useContext, useEffect, useRef } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { useCollectionData } from "react-firebase-hooks/firestore";
 import { useNavigate } from "react-router";
 import { Context } from "../../..";
 import { useTypedSelector } from "../../../hooks/useTypedSelector";
+import { Camera } from "../../../icons/camera/Camera";
+import { Micro } from "../../../icons/micro/Micro";
 import { Phone } from "../../../icons/phone/Phone";
+import { IOneCallOffer } from "../../../types/OneCallOffer";
 import { FullFrame } from "../../ui/fullFrame/FullFrame";
 import cl from "./OneCallOffer.module.css"
-
-interface IOneCallOffer {
-    callDoc: any // ANY !!!!!!!!
-    callId: string
-    activeFrame: boolean;
-    setActiveFrame: (value: boolean) => void;
-    activeVideo: boolean;
-    setActiveVideo: (value: boolean) => void;
-    pc: RTCPeerConnection | null;
-    setPc: (value: RTCPeerConnection | null) => void;
-    localStream: any;
-    setLocalStream: (value: any) => void;
-    remoteStream: any;
-    isChoiseWork: boolean;
-    setIsChoiseWork: (value: boolean) => void;
-}
 
 const OneCallOffer: React.FC<IOneCallOffer> = ({
     callDoc,
@@ -44,6 +31,8 @@ const OneCallOffer: React.FC<IOneCallOffer> = ({
     const { mainId, guestId } = useTypedSelector(state => state.statusCall)
     const webcamVideo = useRef<HTMLVideoElement | null>(null);
     const remoteVideo = useRef<HTMLVideoElement | null>(null);
+    const [microOn, setMicroOn] = useState<boolean>(true)
+    const [cameraOn, setCameraOn] = useState<boolean>(true)
 
     const [isWorkCalls] = useCollectionData(
         firestore.collection(`isWorkCalls`)
@@ -51,6 +40,7 @@ const OneCallOffer: React.FC<IOneCallOffer> = ({
 
     const startSignal = async () => {
         setLocalStream(await navigator.mediaDevices.getUserMedia({ video: true, audio: false }))
+        // setLocalStream(await navigator.mediaDevices.getDisplayMedia({ video: true, audio: false }))
     }
 
     const createOffer = async () => {
@@ -119,6 +109,24 @@ const OneCallOffer: React.FC<IOneCallOffer> = ({
         });
 
         stopVideo()
+    }
+
+    const clickMicroIcon = () => {
+        setMicroOn(!microOn);
+        changeAudio();
+    }
+
+    const clickVideoIcon = () => {
+        setCameraOn(!cameraOn);
+        changeVideo();
+    }
+
+    const changeAudio = () => {
+        localStream.getAudioTracks()[0].enabled = !(localStream.getAudioTracks()[0].enabled);
+    }
+
+    const changeVideo = () => {
+        localStream.getVideoTracks()[0].enabled = !(localStream.getVideoTracks()[0].enabled);
     }
 
     const stopVideo = async () => {
@@ -191,9 +199,21 @@ const OneCallOffer: React.FC<IOneCallOffer> = ({
                 <video className={cl.webcamVideo} autoPlay playsInline muted ref={webcamVideo}></video>
 
                 <div className={cl.buttons}>
-                    <div className={cl.cancel} onClick={buttonStop}>
+                    <div className={cl.cancel + " " + cl.button} onClick={buttonStop}>
                         <div className={cl.phoneIcon}>
                             <Phone color="white" />
+                        </div>
+                    </div>
+
+                    <div className={cl.camera + " " + cl.button}>
+                        <div className={cl.cameraIcon} onClick={() => clickVideoIcon()}>
+                            <Camera bg={cameraOn ? "white" : "black"} />
+                        </div>
+                    </div>
+
+                    <div className={cl.micro + " " + cl.button}>
+                        <div className={cl.microIcon} onClick={() => clickMicroIcon()}>
+                            <Micro bg={microOn ? "white" : "black"} />
                         </div>
                     </div>
 

@@ -33,14 +33,8 @@ const UserCard: React.FC<IUserCardProps> = ({ user }) => {
 
                 <div className={cl.name}>{user.name}</div>
 
-                {/* <Link to="/callOffer">
-                    <div className={cl.cameraLogo} onClick={() => startCall()}>
-                        <Camera />
-                    </div>
-                </Link> */}
-
                 <div className={cl.cameraLogo} onClick={() => startCall()}>
-                    <Camera />
+                    <Camera bg="rgb(50, 34, 124)"/>
                 </div>
 
                 <div className={cl.phoneLogo}>

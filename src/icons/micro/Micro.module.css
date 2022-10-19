@@ -1,0 +1,38 @@
+.micro{
+    position: relative;
+    height: 36px;
+    width: 40px;
+    margin: 0 auto;
+}
+
+.one{
+    position: absolute;
+    height: 20px;
+    width: 10px;
+    left: 15px;
+    background: white;
+    border-radius: 5px;
+}
+
+.two{
+    position: absolute;
+    top: 15px;
+    left: 9px;
+    width: 16px;
+    height: 8px;
+    border-radius: 100px 100px 0 0;
+    border-top: 3px solid white;
+    border-left: 3px solid white;
+    border-right: 3px solid white;
+    transform: rotate(180deg);
+}
+
+.three{
+    position: absolute;
+    left: 18px;
+    top: 24px;
+    height: 12px;
+    width: 4px;
+    background: white;
+    border-radius: 2px;
+}
